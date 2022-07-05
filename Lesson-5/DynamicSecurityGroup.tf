@@ -7,7 +7,7 @@ resource "aws_security_group" "my_webserver" {
   description = "Allow TLS inbound traffic"
 
   dynamic "ingress" {
-    for_each = ["80", "443", "8080", "1541", "9092", "9093"]
+    for_each = ["80", "443", "8080", "1541", "9092", "9093", "8081"]
     content {
       from_port   = ingress.value
       to_port     = ingress.value
