@@ -50,7 +50,7 @@ resource "aws_subnet" "main" {
 
 
 resource "aws_instance" "my_Amazon_linux" {
-  count                  = var.prefix
+  count                  = "${var.prefix}"
   ami                    = "ami-0a1ee2fb28fe05df3" #Amazon Linux AMI
   instance_type          = "t2.micro"
   vpc_security_group_ids = [aws_security_group.alexey-secure-group.id]
