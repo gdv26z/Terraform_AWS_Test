@@ -6,7 +6,7 @@ provider "aws" {
 
 
 resource "aws_vpc" "vpc" {
-  cidr_block       = "10.0.0.0/16"
+  cidr_block       = var.cidr_block_vpc
   instance_tenancy = "default"
 
   tags = {
@@ -28,7 +28,7 @@ resource "aws_internet_gateway" "internet-gateway" {
 resource "aws_route_table" "public-route-table" {
   vpc_id = aws_vpc.vpc.id
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block = var.route_table
     gateway_id = aws_internet_gateway.internet-gateway.id
   }
   tags = {
@@ -47,7 +47,7 @@ resource "aws_subnet" "public-subnet-1" {
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = "10.0.0.0/24"
   map_public_ip_on_launch = true
-  availability_zone       = "eu-central-1a"
+  availability_zone       = var.availability_zone_a
   tags = {
     Name = "public-alexey-subnet-1"
   }
@@ -60,7 +60,7 @@ resource "aws_subnet" "private-subnet-1" {
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = "10.0.2.0/24"
   map_public_ip_on_launch = false
-  availability_zone       = "eu-central-1a"
+  availability_zone       = var.availability_zone_a
 
   tags = {
     Name = "private-alexey-subnet-2"
