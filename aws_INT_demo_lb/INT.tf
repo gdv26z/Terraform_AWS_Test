@@ -85,23 +85,20 @@ resource "aws_route_table_association" "public-subnet-1-route-table-association"
 }
 
 
-# resource "aws_eip_association" "eip_assoc" {
-#   instance_id   = aws_instance.my_Amazon_linux.id
-#   allocation_id = "eipalloc-02ea054c8065f1c11"
-# }
-
 
 resource "aws_instance" "my_Amazon_linux" {
-  # count                  = var.prefix
+  count                       = 3
   ami                         = "ami-0a1ee2fb28fe05df3" #Amazon Linux AMI
   instance_type               = "t2.micro"
   vpc_security_group_ids      = [aws_security_group.alexey-secure-group.id]
   subnet_id                   = aws_subnet.public-subnet-1a.id
+  key_name                    = "alexeymihaylov_key"
   associate_public_ip_address = true
   tags = {
-    Name = "Alexey-EC2-PUBLIC-terraform"
+    Name = "Alexey-EC2-PUBLIC-terraform-${count.index}"
   }
 }
+
 
 
 resource "aws_instance" "my_Amazon_linux2" {
@@ -137,7 +134,7 @@ resource "aws_security_group" "alexey-secure-group" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["10.10.0.0/16"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
     from_port   = 0
@@ -160,18 +157,19 @@ resource "aws_lb_target_group" "demo" {
   depends_on = [aws_instance.my_Amazon_linux, aws_instance.my_Amazon_linux2]
   health_check {
     healthy_threshold   = 5
-    unhealthy_threshold = 2
+    unhealthy_threshold = 5
     timeout             = 5
     path                = "/status"
-    interval            = 10
+    interval            = 30
   }
 }
 resource "aws_lb_target_group_attachment" "demo" {
+  count            = length(aws_instance.my_Amazon_linux)
   target_group_arn = aws_lb_target_group.demo.arn
-  count            = 2
-  target_id        = aws_instance.demo[count.index].id
+  target_id        = aws_instance.my_Amazon_linux[count.index].id
   port             = 80
 }
+
 
 resource "aws_lb" "app_lb" {
   name                       = "Alexey-LB-terraform"
