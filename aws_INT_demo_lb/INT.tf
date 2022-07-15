@@ -85,9 +85,9 @@ resource "aws_route_table_association" "public-subnet-1-route-table-association"
 }
 
 
-
+#Create ec2 instances
 resource "aws_instance" "my_Amazon_linux" {
-  count                       = 3
+  count                       = 2
   ami                         = "ami-0a1ee2fb28fe05df3" #Amazon Linux AMI
   instance_type               = "t2.micro"
   vpc_security_group_ids      = [aws_security_group.alexey-secure-group.id]
@@ -98,23 +98,6 @@ resource "aws_instance" "my_Amazon_linux" {
     Name = "Alexey-EC2-PUBLIC-terraform-${count.index}"
   }
 }
-
-
-
-resource "aws_instance" "my_Amazon_linux2" {
-  # count                  = var.prefix
-  ami                         = "ami-0a1ee2fb28fe05df3" #Amazon Linux AMI
-  instance_type               = "t2.micro"
-  vpc_security_group_ids      = [aws_security_group.alexey-secure-group.id]
-  subnet_id                   = aws_subnet.private-subnet-1.id
-  associate_public_ip_address = false
-  tags = {
-    Name = "Alexey-EC2-PRIVATE-terraform"
-  }
-}
-
-
-
 
 resource "aws_security_group" "alexey-secure-group" {
   name        = "web_server_secure_group"
@@ -144,7 +127,7 @@ resource "aws_security_group" "alexey-secure-group" {
   }
 
   tags = {
-    Name = "Alexey-web_servers-terraform"
+    Name = "Alexey-security_group-terraform"
   }
 }
 
@@ -154,7 +137,7 @@ resource "aws_lb_target_group" "demo" {
   port       = 8080
   protocol   = "HTTP"
   vpc_id     = aws_vpc.vpc.id
-  depends_on = [aws_instance.my_Amazon_linux, aws_instance.my_Amazon_linux2]
+  depends_on = [aws_instance.my_Amazon_linux]
   health_check {
     healthy_threshold   = 5
     unhealthy_threshold = 5
