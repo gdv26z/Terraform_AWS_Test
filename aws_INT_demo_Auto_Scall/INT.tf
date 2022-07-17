@@ -179,3 +179,18 @@ resource "aws_lb_listener" "app_lb" {
 
   }
 }
+
+resource "aws_launch_template" "hello-world" {
+  name                    = "Alexey-template"
+  disable_api_termination = true
+  iam_instance_profile {
+    name = "profile-1"
+  }
+  image_id                             = "ami-0a1ee2fb28fe05df3"
+  instance_type                        = "t2.micro"
+  instance_initiated_shutdown_behavior = "terminate"
+  key_name                             = "alexeymihaylov_key"
+  vpc_security_group_ids               = [aws_security_group.alexey-secure-group.id]
+
+  user_data = file("user_data.sh")
+}
