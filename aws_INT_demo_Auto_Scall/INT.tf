@@ -84,22 +84,6 @@ resource "aws_route_table_association" "public-subnet-1-route-table-association"
   route_table_id = aws_route_table.public-route-table.id
 }
 
-
-#Create ec2 instances
-resource "aws_instance" "my_Amazon_linux" {
-  count                       = 2
-  ami                         = "ami-0a1ee2fb28fe05df3" #Amazon Linux AMI
-  instance_type               = "t2.micro"
-  vpc_security_group_ids      = [aws_security_group.alexey-secure-group.id]
-  subnet_id                   = aws_subnet.public-subnet-1a.id
-  key_name                    = "alexeymihaylov_key"
-  associate_public_ip_address = true
-  user_data                   = file("user_data.sh")
-  tags = {
-    Name = "Alexey-EC2-PUBLIC-terraform-${count.index}"
-  }
-}
-
 resource "aws_security_group" "alexey-secure-group" {
   name        = "web_server_secure_group"
   description = "Allow TLS inbound traffic"
@@ -134,11 +118,10 @@ resource "aws_security_group" "alexey-secure-group" {
 
 #create target group
 resource "aws_lb_target_group" "demo" {
-  name       = "alexey-tg"
-  port       = 8080
-  protocol   = "HTTP"
-  vpc_id     = aws_vpc.vpc.id
-  depends_on = [aws_instance.my_Amazon_linux]
+  name     = "alexey-tg"
+  port     = 8080
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.vpc.id
   health_check {
     healthy_threshold   = 5
     unhealthy_threshold = 5
@@ -147,14 +130,6 @@ resource "aws_lb_target_group" "demo" {
     interval            = 30
   }
 }
-
-resource "aws_lb_target_group_attachment" "demo1" {
-  count            = length(aws_instance.my_Amazon_linux)
-  target_group_arn = aws_lb_target_group.demo.arn
-  target_id        = aws_instance.my_Amazon_linux[count.index].id
-  port             = 8080
-}
-
 
 resource "aws_lb" "app_lb" {
   name                       = "Alexey-LB-terraform"
@@ -180,17 +155,38 @@ resource "aws_lb_listener" "app_lb" {
   }
 }
 
-resource "aws_launch_template" "hello-world" {
-  name                    = "Alexey-template"
-  disable_api_termination = true
-  iam_instance_profile {
-    name = "profile-1"
-  }
-  image_id                             = "ami-0a1ee2fb28fe05df3"
-  instance_type                        = "t2.micro"
-  instance_initiated_shutdown_behavior = "terminate"
-  key_name                             = "alexeymihaylov_key"
-  vpc_security_group_ids               = [aws_security_group.alexey-secure-group.id]
+data "template_file" "test" {
+  template = file("user_data.sh")
+}
 
-  user_data = file("user_data.sh")
+resource "aws_launch_template" "foobar" {
+  name                   = "Alexey-template"
+  image_id               = "ami-0a1ee2fb28fe05df3"
+  instance_type          = "t2.micro"
+  key_name               = "alexeymihaylov_key"
+  vpc_security_group_ids = [aws_security_group.alexey-secure-group.id]
+  user_data              = base64encode(data.template_file.test.rendered)
+
+  tags = {
+    Name = "alexey-scalling-Terraform"
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+
+}
+
+resource "aws_autoscaling_group" "Alexey-aws_autoscaling_group" {
+  name                = "Alexey-aws-autoscaling-group-terraform"
+  desired_capacity    = 2
+  max_size            = 3
+  min_size            = 1
+  vpc_zone_identifier = [aws_subnet.public-subnet-1a.id, aws_subnet.public-subnet-2b.id]
+  target_group_arns   = [aws_lb_target_group.demo.arn] #  A list of aws_alb_target_group ARNs, for use with Application or Network Load Balancing.
+
+  launch_template {
+    id      = aws_launch_template.foobar.id
+    version = "$Latest"
+  }
+
 }
