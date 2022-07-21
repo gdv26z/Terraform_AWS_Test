@@ -77,12 +77,17 @@ resource "aws_subnet" "private-subnet-1" {
   }
 }
 
-# Associate Public Subnet 1 to "Public Route Table"
+# Associate Public Subnet 1/2 to "Public Route Table"
 # terraform aws associate subnet with route table
 resource "aws_route_table_association" "public-subnet-1-route-table-association" {
   subnet_id      = aws_subnet.public-subnet-1a.id
   route_table_id = aws_route_table.public-route-table.id
 }
+resource "aws_route_table_association" "public-subnet-2-route-table-association" {
+  subnet_id      = aws_subnet.public-subnet-2b.id
+  route_table_id = aws_route_table.public-route-table.id
+}
+
 
 resource "aws_security_group" "alexey-secure-group" {
   name        = "web_server_secure_group"
@@ -119,14 +124,14 @@ resource "aws_security_group" "alexey-secure-group" {
 #create target group
 resource "aws_lb_target_group" "demo" {
   name     = "alexey-tg"
-  port     = 8080
+  port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.vpc.id
   health_check {
     healthy_threshold   = 5
     unhealthy_threshold = 5
     timeout             = 5
-    path                = "/status"
+    path                = "/usr/share/nginx/html"
     interval            = 30
   }
 }
@@ -178,7 +183,7 @@ resource "aws_launch_template" "foobar" {
 
 resource "aws_autoscaling_group" "Alexey-aws_autoscaling_group" {
   name                = "Alexey-aws-autoscaling-group-terraform"
-  desired_capacity    = 2
+  desired_capacity    = 1
   max_size            = 3
   min_size            = 1
   vpc_zone_identifier = [aws_subnet.public-subnet-1a.id, aws_subnet.public-subnet-2b.id]
@@ -188,5 +193,20 @@ resource "aws_autoscaling_group" "Alexey-aws_autoscaling_group" {
     id      = aws_launch_template.foobar.id
     version = "$Latest"
   }
+}
 
+resource "aws_autoscaling_policy" "web_cluster_target_tracking_policy" {
+  name                      = "staging-web-cluster-target-tracking-policy"
+  policy_type               = "TargetTrackingScaling"
+  autoscaling_group_name    = aws_autoscaling_group.Alexey-aws_autoscaling_group.name
+  estimated_instance_warmup = 200
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+
+    target_value = "40"
+
+  }
 }
