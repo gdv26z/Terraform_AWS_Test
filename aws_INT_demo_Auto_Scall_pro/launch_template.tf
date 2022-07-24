@@ -9,6 +9,14 @@ resource "aws_launch_template" "foobar" {
   tags = {
     Name = "alexey-scalling-Terraform"
   }
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = {
+      Name = "alexey-scalling-Terraform"
+    }
+  }
+
   lifecycle {
     create_before_destroy = true
   }

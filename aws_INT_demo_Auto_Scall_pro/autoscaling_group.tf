@@ -23,7 +23,7 @@ resource "aws_autoscaling_policy" "web_cluster_target_tracking_policy" {
       predefined_metric_type = "ASGAverageCPUUtilization"
     }
 
-    target_value = "40"
+    target_value = "20"
 
   }
 }
