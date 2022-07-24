@@ -8,7 +8,7 @@ resource "aws_lb_target_group" "demo" {
     healthy_threshold   = 5
     unhealthy_threshold = 5
     timeout             = 5
-    path                = "/usr/share/nginx/html"
+    path                = "/status"
     interval            = 30
   }
 }
