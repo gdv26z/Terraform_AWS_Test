@@ -34,3 +34,8 @@ variable "availability_zone_b" {
   description = "The availability_zone where the virtual network is created."
   default     = "eu-central-1b"
 }
+
+variable "claster_name" {
+  description = "The claster name on AWS"
+  default     = "devopsthehardway-cluster"
+}
