@@ -33,3 +33,11 @@ variable "availability_zone_b" {
   description = "The availability_zone where the virtual network is created."
   default     = "eu-central-1b"
 }
+
+variable "bucket_name" {
+   default     = "polybotbucket"
+}
+
+variable "acl_value" {
+    default = "private"
+}

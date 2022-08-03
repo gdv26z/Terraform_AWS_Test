@@ -1,10 +1,9 @@
-resource "aws_autoscaling_group" "EX1_polybot_autoscaling_group" {
-  name                = "Alexey-aws-autoscaling-group-terraform"
+resource "aws_autoscaling_group" "Polybot-aws_autoscaling_group" {
+  name                = "EX1-Polybot-autoscaling-group"
   desired_capacity    = 0
   max_size            = 0
   min_size            = 0
   vpc_zone_identifier = [aws_subnet.public-subnet-1a.id, aws_subnet.public-subnet-2b.id]
-  target_group_arns   = [aws_lb_target_group.EX1_polybot_tg.arn] #  A list of aws_alb_target_group ARNs, for use with Application or Network Load Balancing.
 
   launch_template {
     id      = aws_launch_template.EX1_polybot_temp.id
@@ -13,9 +12,9 @@ resource "aws_autoscaling_group" "EX1_polybot_autoscaling_group" {
 }
 
 resource "aws_autoscaling_policy" "web_cluster_target_tracking_policy" {
-  name                      = "staging-web-cluster-target-tracking-policy"
+  name                      = "polybot-target-tracking-policy"
   policy_type               = "TargetTrackingScaling"
-  autoscaling_group_name    = aws_autoscaling_group.EX1_polybot_autoscaling_group.name
+  autoscaling_group_name    = aws_autoscaling_group.Polybot-aws_autoscaling_group.name
   estimated_instance_warmup = 200
 
   target_tracking_configuration {
