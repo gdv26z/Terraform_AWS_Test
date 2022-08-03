@@ -10,3 +10,4 @@ resource "aws_eks_cluster" "devopsthehardway-eks" {
     aws_iam_role.eks-iam-role,
   ]
 }
+
